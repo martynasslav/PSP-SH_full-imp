@@ -1,5 +1,7 @@
 namespace Classes;
 
+using Enums;
+
 public class Discount
 {
     public string Id { get; set; }

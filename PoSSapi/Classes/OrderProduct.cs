@@ -8,6 +8,5 @@ public class OrderProduct
     public Product Product { get; set; }
     public float Quantity { get; set; }
     public string? Details { get; set; }
-    public Product Product { get; set; }
     public ProductOrder Order { get; set; }
 }
