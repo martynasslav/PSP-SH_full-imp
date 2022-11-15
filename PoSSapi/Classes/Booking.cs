@@ -9,6 +9,6 @@ public class Booking
     public DateTime EndDate { get; set; }
     public int PeopleCount { get; set; }
     public BookingState State { get; set; }
-    public Customer Customer { get; set; }
-    public Location Location { get; set; }
+    public string CustomerId { get; set; }
+    public string LocationId { get; set; }
 }

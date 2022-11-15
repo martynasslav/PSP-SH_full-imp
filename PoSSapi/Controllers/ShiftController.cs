@@ -1,50 +1,22 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Classes;
-using Enums;
+using PoSSapi.Tools;
 
 namespace PoSSapi.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class ShiftController : ControllerBase
+    public class ShiftController : GenericController<Shift>
     {
-        // GET /Shift
-        [HttpGet]
-        public ActionResult<Shift> Get()
+        [HttpGet()]
+        public ActionResult GetAll([FromQuery] string? employeeId)
         {
-            // Return a list of shifts
-            var shiftList = new List<Shift>();
-            shiftList.Append(Shift.GenerateRandom());
-            return Ok(shiftList);
-        }
-
-        // GET /Shift/5
-        [HttpGet("{id}")]
-        public ActionResult Get(string id)
-        {
-            return Ok(Shift.GenerateRandom(id));
-        }
-
-        // POST /Shift
-        [HttpPost]
-        public ActionResult Post([FromBody] Shift shift)
-        {
-            return CreatedAtAction(nameof(Get), new { id = shift.Id }, shift);
-        }
-
-        // PUT /Shift/5
-        [HttpPut("{id}")]
-        public ActionResult Put(string id, [FromBody] Shift shift)
-        {
-            return Ok();
-        }
-
-        // DELETE /Shift/5
-        [HttpDelete("{id}")]
-        public ActionResult Delete(string id)
-        {
-            return Ok();
+            var objectList = new Shift[] { RandomGenerator.GenerateRandom<Shift>() };
+            if (employeeId != null)
+            {
+                objectList[0].EmployeeId = employeeId;
+            }
+            return Ok(objectList);
         }
     }
 }
