@@ -351,3 +351,5 @@ MigrationBackup/
 
 # vscode launch configuration
 .vscode/
+
+**/.idea

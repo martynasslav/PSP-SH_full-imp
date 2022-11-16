@@ -6,6 +6,7 @@ public class Service
     public string Name { get; set; }
     public string? EmployeeId { get; set; }
     public decimal Price { get; set; }
-    public Object Duration { get; set; } //Not specified in the diagram
-    public Category Category { get; set; }
+    public int Duration { get; set; } // in seconds
+    public string CategoryId { get; set; }
+    public string LocationId { get; set; }
 }
