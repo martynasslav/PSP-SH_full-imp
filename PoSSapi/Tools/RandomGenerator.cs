@@ -15,13 +15,16 @@
                 }
                 else
                 {
-                    switch(property.PropertyType)
+                    switch (property.PropertyType)
                     {
                         case Type t when t == typeof(string):
                             property.SetValue(instance, Guid.NewGuid().ToString());
                             break;
                         case Type t when t == typeof(int):
                             property.SetValue(instance, random.Next());
+                            break;
+                        case Type t when t == typeof(decimal):
+                            property.SetValue(instance, new decimal(random.NextDouble()));
                             break;
                         case Type t when t == typeof(double):
                             property.SetValue(instance, random.NextDouble());

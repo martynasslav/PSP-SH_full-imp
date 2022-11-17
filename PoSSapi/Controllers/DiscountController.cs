@@ -13,7 +13,7 @@ namespace PoSSapi.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpGet()]
         public ActionResult GetAll([FromQuery] DiscountTargetType? discountTarget, [FromQuery] string? targetId,
-             [FromQuery] int itemsPerPage=10, [FromQuery] int pageNum=0)
+             [FromQuery] int itemsPerPage = 10, [FromQuery] int pageNum = 0)
         {
             if (itemsPerPage <= 0)
             {
@@ -39,6 +39,15 @@ namespace PoSSapi.Controllers
             }
 
             return Ok(objectList);
+        }
+
+        /** <summary>Send an email promotion of this discount</summary>
+             * <param name="discountId" example="">Id of the discount you wish to promote</param>
+             */
+        [HttpPost("promote")]
+        public ActionResult PromoteDiscountToCustomers([FromQuery] string discountId)
+        {
+            return Ok();
         }
     }
 }

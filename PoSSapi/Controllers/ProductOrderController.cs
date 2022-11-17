@@ -30,7 +30,11 @@ public class ProductOrderController : GenericController<ProductOrder>
 
         return Ok(objectList);
     }
-    
+
+    /** <summary>Changes status of a certain product order</summary>
+     * <param name="id" example="">Id of the product order that you want the status changed</param>
+     * <param name="status" example="">Status that you want the product order to be in</param>
+     */
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -42,5 +46,5 @@ public class ProductOrderController : GenericController<ProductOrder>
 
         return Ok();
     }
-    
+
 }
