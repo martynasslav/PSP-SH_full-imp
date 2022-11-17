@@ -14,17 +14,18 @@ namespace PoSSapi.Controllers
         public ActionResult GetAll([FromQuery] string? locationId, [FromQuery] string? customerId,
             [FromQuery] int itemsPerPage=10, [FromQuery] int pageNum=0)
         {
-            if (itemsPerPage <= 0)
-            {
+            if (itemsPerPage <= 0) {
                 return BadRequest("itemsPerPage must be greater than 0");
             }
-            if (pageNum < 0)
-            {
-                return BadRequest("pageNum must be greater than or equal to 0");
+            if (pageNum < 0) {
+                return BadRequest("pageNum must be 0 or greater");
             }
 
-            var objectList = new Booking[itemsPerPage];
-            for (int i = 0; i < itemsPerPage; i++)
+            int totalItems = 20;  
+            int itemsToDisplay = ControllerTools.calculateItemsToDisplay(itemsPerPage, pageNum, totalItems);
+
+            var objectList = new Booking[itemsToDisplay];
+            for (int i = 0; i < itemsToDisplay; i++)
             {
                 objectList[i] = RandomGenerator.GenerateRandom<Booking>();
                 if (locationId != null)
@@ -37,7 +38,8 @@ namespace PoSSapi.Controllers
                 }
             }
 
-            return Ok(objectList);
+            ReturnObject returnObject = new ReturnObject {totalItems = totalItems, itemList = objectList};
+            return Ok(returnObject);
         }
     }
 }
