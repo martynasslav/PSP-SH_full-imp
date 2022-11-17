@@ -8,14 +8,8 @@ namespace PoSSapi.Controllers
     [Route("[controller]")]
     public class EmployeeController : GenericController<Employee>
     {
-        private class ReturnObject {
-            public int totalEmployees {get; set;}
-            public Employee[] employeeList {get; set;}
-        }
-
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpGet()]
         public ActionResult GetAll([FromQuery] string? username, [FromQuery] bool? isManager, [FromQuery] string? locationId, [FromQuery] int itemsPerPage=10, [FromQuery] int pageNum=0)
         {
@@ -26,19 +20,16 @@ namespace PoSSapi.Controllers
                 return BadRequest("pageNum must be 0 or greater");
             }
 
-            int totalEmployees;
+            int totalItems;
             if (username != null) {
-                totalEmployees = 1;
+                totalItems = 1;
             }
             else {
-                totalEmployees = 20;
+                totalItems = 20;
             }
 
-            if (itemsPerPage * pageNum >= totalEmployees) {
-                return NotFound("Requested page does not exist");
-            }
+            int itemsToDisplay = ControllerTools.calculateItemsToDisplay(itemsPerPage, pageNum, totalItems);
 
-            int itemsToDisplay = Math.Min(totalEmployees - 1, itemsPerPage * (pageNum + 1) - 1) % itemsPerPage + 1;
             var objectList = new Employee[itemsToDisplay];
             for (int i = 0; i < itemsToDisplay; ++i) {
                 objectList[i] = RandomGenerator.GenerateRandom<Employee>();
@@ -54,7 +45,7 @@ namespace PoSSapi.Controllers
                 }
             }
 
-            ReturnObject returnObject = new ReturnObject {totalEmployees = totalEmployees, employeeList = objectList};
+            ReturnObject returnObject = new ReturnObject {totalItems = totalItems, itemList = objectList};
             return Ok(returnObject);
         }
     }
