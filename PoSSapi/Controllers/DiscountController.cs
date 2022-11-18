@@ -2,6 +2,7 @@
 using Classes;
 using PoSSapi.Tools;
 using Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace PoSSapi.Controllers
 {
@@ -15,14 +16,16 @@ namespace PoSSapi.Controllers
         public ActionResult GetAll([FromQuery] DiscountTargetType? discountTarget, [FromQuery] string? targetId,
              [FromQuery] int itemsPerPage = 10, [FromQuery] int pageNum = 0)
         {
-            if (itemsPerPage <= 0) {
+            if (itemsPerPage <= 0)
+            {
                 return BadRequest("itemsPerPage must be greater than 0");
             }
-            if (pageNum < 0) {
+            if (pageNum < 0)
+            {
                 return BadRequest("pageNum must be 0 or greater");
             }
 
-            int totalItems = 20;  
+            int totalItems = 20;
             int itemsToDisplay = ControllerTools.calculateItemsToDisplay(itemsPerPage, pageNum, totalItems);
 
             var objectList = new Discount[itemsToDisplay];
@@ -39,15 +42,18 @@ namespace PoSSapi.Controllers
                 }
             }
 
-            ReturnObject returnObject = new ReturnObject {totalItems = totalItems, itemList = objectList};
+            ReturnObject returnObject = new ReturnObject { totalItems = totalItems, itemList = objectList };
             return Ok(returnObject);
         }
 
         /** <summary>Send an email promotion of this discount</summary>
              * <param name="discountId" example="">Id of the discount you wish to promote</param>
              */
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpPost("promote")]
-        public ActionResult PromoteDiscountToCustomers([FromQuery] string discountId)
+        public ActionResult PromoteDiscountToCustomers([FromQuery][Required] string discountId)
         {
             return Ok();
         }
