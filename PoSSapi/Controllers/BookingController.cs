@@ -45,18 +45,5 @@ public class BookingController : GenericController<Booking>
         ReturnObject returnObject = new ReturnObject { totalItems = totalItems, itemList = objectList };
         return Ok(returnObject);
     }
-
-
-    /** <summary>See a specific customers bookings</summary>
-         * <param name="customerId" example="">Id of the customer you wish to see bookings of</param>
-         */
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [HttpGet("customer")]
-    public ActionResult GetCustomerBookings([FromQuery][Required] string customerId)
-    {
-        return Ok(RandomGenerator.GenerateRandom<CustomerBookingDto>());
-    }
 }
 
