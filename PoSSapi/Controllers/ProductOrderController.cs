@@ -20,15 +20,19 @@ public class ProductOrderController : GenericController<ProductOrder>
         {
             return BadRequest("Invalid itemsPerPage or pageNum");
         }
+        
+        int totalItems = 20;  
+        int itemsToDisplay = ControllerTools.calculateItemsToDisplay(itemsPerPage, pageNum, totalItems);
 
-        var objectList = new ProductOrder[itemsPerPage];
-        for (var i = 0; i < itemsPerPage; i++)
+        var objectList = new ProductOrder[itemsToDisplay];
+        for (var i = 0; i < itemsToDisplay; i++)
         {
             objectList[i] = RandomGenerator.GenerateRandom<ProductOrder>();
             objectList[i].OrderStatus = status ?? OrderStatusState.New;
         }
 
-        return Ok(objectList);
+        ReturnObject returnObject = new ReturnObject {totalItems = totalItems, itemList = objectList};
+        return Ok(returnObject);
     }
 
     /** <summary>Changes status of a certain product order</summary>
@@ -39,10 +43,10 @@ public class ProductOrderController : GenericController<ProductOrder>
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpPatch("{id}")]
-    public ActionResult ChangeStatus(string id, [FromQuery][Required] OrderStatusState? status)
+    public ActionResult ChangeStatus(string id, [FromQuery][Required] OrderStatusState status)
     {
         var productOrder = RandomGenerator.GenerateRandom<ProductOrder>(id);
-        productOrder.OrderStatus = status ?? OrderStatusState.New;
+        productOrder.OrderStatus = status;
 
         return Ok();
     }

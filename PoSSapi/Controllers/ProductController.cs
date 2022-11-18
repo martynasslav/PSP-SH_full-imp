@@ -18,9 +18,12 @@ public class ProductController : GenericController<Product>
         {
             return BadRequest("Invalid itemsPerPage or pageNum");
         }
+        
+        int totalItems = 20;  
+        int itemsToDisplay = ControllerTools.calculateItemsToDisplay(itemsPerPage, pageNum, totalItems);
 
-        var objectList = new Product[itemsPerPage];
-        for (var i = 0; i < itemsPerPage; i++)
+        var objectList = new Product[itemsToDisplay];
+        for (var i = 0; i < itemsToDisplay; i++)
         {
             objectList[i] = RandomGenerator.GenerateRandom<Product>();
             
@@ -35,6 +38,7 @@ public class ProductController : GenericController<Product>
             }
         }
         
-        return Ok(objectList);
+        ReturnObject returnObject = new ReturnObject {totalItems = totalItems, itemList = objectList};
+        return Ok(returnObject);
     }
 }

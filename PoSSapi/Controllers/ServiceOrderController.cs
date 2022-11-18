@@ -20,15 +20,19 @@ public class ServiceOrderController : GenericController<Order>
         {
             return BadRequest("Invalid itemsPerPage or pageNum");
         }
+        
+        int totalItems = 20;  
+        int itemsToDisplay = ControllerTools.calculateItemsToDisplay(itemsPerPage, pageNum, totalItems);
 
-        var objectList = new Order[itemsPerPage];
-        for (var i = 0; i < itemsPerPage; i++)
+        var objectList = new Order[itemsToDisplay];
+        for (var i = 0; i < itemsToDisplay; i++)
         {
             objectList[i] = RandomGenerator.GenerateRandom<Order>();
             objectList[i].OrderStatus = status ?? OrderStatusState.New;
         }
 
-        return Ok(objectList);
+        ReturnObject returnObject = new ReturnObject {totalItems = totalItems, itemList = objectList};
+        return Ok(returnObject);
     }
 
     /** <summary>Changes status of a certain service order</summary>

@@ -6,7 +6,7 @@ namespace PoSSapi.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class OrderServiceController : GenericController<OrderProduct>
+public class OrderServiceController : GenericController<OrderService>
 {
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -18,9 +18,12 @@ public class OrderServiceController : GenericController<OrderProduct>
         {
             return BadRequest("Invalid itemsPerPage or pageNum");
         }
+        
+        int totalItems = 20;  
+        int itemsToDisplay = ControllerTools.calculateItemsToDisplay(itemsPerPage, pageNum, totalItems);
 
-        var objectList = new OrderService[itemsPerPage];
-        for (var i = 0; i < itemsPerPage; i++)
+        var objectList = new OrderService[itemsToDisplay];
+        for (var i = 0; i < itemsToDisplay; i++)
         {
             objectList[i] = RandomGenerator.GenerateRandom<OrderService>();
             
@@ -30,6 +33,7 @@ public class OrderServiceController : GenericController<OrderProduct>
             }
         }
         
-        return Ok(objectList);
+        ReturnObject returnObject = new ReturnObject {totalItems = totalItems, itemList = objectList};
+        return Ok(returnObject);
     }
 }
