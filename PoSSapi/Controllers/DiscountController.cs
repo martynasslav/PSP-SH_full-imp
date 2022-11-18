@@ -47,12 +47,12 @@ namespace PoSSapi.Controllers
         }
 
         /** <summary>Send an email promotion of this discount</summary>
-             * <param name="discountId" example="">Id of the discount you wish to promote</param>
-             */
+             * <param name="id" example="">Id of the discount you wish to promote</param>
+        */
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [HttpPost("promote")]
-        public ActionResult PromoteDiscountToCustomers([FromQuery][Required] string discountId)
+        [HttpPost("{id}/promote")]
+        public ActionResult PromoteDiscountToCustomers(string id)
         {
             return Ok();
         }

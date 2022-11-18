@@ -10,15 +10,15 @@ namespace PoSSapi.Controllers
     public class CustomerController : GenericController<Customer>
     {
         /** <summary>Gets customers payments by id</summary>
-         * <param name="customerId" example="">Id of the customer whose payments you wish to see</param>
+         * <param name="id" example="">Id of the customer whose payments you wish to see</param>
          */
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [HttpGet("spending")]
-        public ActionResult GetCustomerSpendingById([FromQuery] string customerId)
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpGet("{id}/spending")]
+        public ActionResult GetCustomerSpendingById(string id)
         {
             var spendingDto = RandomGenerator.GenerateRandom<SpendingDto>();
-            spendingDto.CustomerId = customerId;
+            spendingDto.CustomerId = id;
             spendingDto.Payments = new List<PaymentDto>();
 
             var amountOfPayments = new Random().Next(1, 10);

@@ -46,9 +46,9 @@ public class ShiftController : GenericController<Shift>
          * <param name="employeeId" example="">Id of the employee checking in for a shift</param>
          */
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [HttpPost("check-in")]
-    public ActionResult CheckInShift([FromBody][Required] string employeeId)
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpPost("{id}/check-in")]
+    public ActionResult CheckInShift(string employeeId)
     {
         return Ok();
     }
@@ -57,9 +57,9 @@ public class ShiftController : GenericController<Shift>
          * <param name="employeeId" example="">Id of the employee checking out from a shift</param>
          */
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [HttpPost("check-in")]
-    public ActionResult CheckOutShift([FromBody][Required] string employeeId)
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpPost("{id}/check-out")]
+    public ActionResult CheckOutShift(string employeeId)
     {
         return Ok();
     }
