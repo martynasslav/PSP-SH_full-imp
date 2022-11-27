@@ -54,7 +54,7 @@ namespace PoSSapi.Controllers
             return Ok();
         }
 
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpDelete("{id}")]
         public ActionResult Delete(string id)
