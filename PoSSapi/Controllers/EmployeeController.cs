@@ -13,8 +13,8 @@ namespace PoSSapi.Controllers
             public int totalItems { get; set; }
             public Shift[] itemList { get; set; }
         }
-
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnObject))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpGet()]
         public ActionResult GetAll([FromQuery] string? username, [FromQuery] bool? isManager, [FromQuery] string? locationId, [FromQuery] int itemsPerPage=10, [FromQuery] int pageNum=0)
@@ -67,8 +67,8 @@ namespace PoSSapi.Controllers
         }
 
         /** <summary>Check out from a shift</summary>
-             * <param name="employeeId" example="">Id of the employee checking out from a shift</param>
-             */
+         * <param name="employeeId" example="">Id of the employee checking out from a shift</param>
+         */
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpPost("{id}/shift/check-out")]

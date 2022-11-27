@@ -10,7 +10,7 @@ namespace PoSSapi.Controllers
     [Route("[controller]")]
     public class DiscountController : GenericController<Discount>
     {
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnObject))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpGet()]
         public ActionResult GetAll([FromQuery] DiscountTargetType? discountTarget, [FromQuery] string? targetId,

@@ -9,7 +9,7 @@ namespace PoSSapi.Controllers;
 [Route("[controller]")]
 public class ServiceController : GenericController<Service>
 {
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnObject))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [HttpGet]
     public ActionResult GetAll([FromQuery] string? locationId, [FromQuery] string? categoryId,

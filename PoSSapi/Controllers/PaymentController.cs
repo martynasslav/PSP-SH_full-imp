@@ -12,7 +12,7 @@ namespace Controllers;
 [Route("[controller]")]
 public class PaymentController : GenericController<Payment>
 {
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnObject))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [HttpGet()]
     public ActionResult GetAll([FromQuery] string? orderId,

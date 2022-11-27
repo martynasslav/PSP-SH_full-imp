@@ -10,7 +10,13 @@ namespace PoSSapi.Controllers;
 [Route("[controller]")]
 public class ServiceOrderController : GenericController<Order>
 {
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    protected class OrderServiceReturnObject
+    {
+        public int totalItems { get; set; }
+        public Shift[] itemList { get; set; }
+    }
+    
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnObject))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [HttpGet]
     public ActionResult GetAll([FromQuery] string? locationId, [FromQuery] OrderStatusState? status,
@@ -56,7 +62,7 @@ public class ServiceOrderController : GenericController<Order>
      * <param name="itemsPerPage">Number of order services returned in the response</param>
      * <param name="pageNum">Number of the chunk of order services returned in the response</param>
      */
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OrderService[]))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OrderServiceReturnObject[]))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpGet("{id}/orderServices")]
     public ActionResult GetOrderServices(string id, [FromQuery] int itemsPerPage = 10, [FromQuery] int pageNum = 0)
@@ -68,8 +74,7 @@ public class ServiceOrderController : GenericController<Order>
      * <param name="id">Id of the service order that you want to add services to</param>
      * <param name="orderServices">Order service list in body to add to the service order</param>
      */
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OrderService[]))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpPost("{id}/orderServices")]
     public ActionResult PostOrderServices(string id, [FromBody] OrderService[] orderServices)
@@ -77,15 +82,14 @@ public class ServiceOrderController : GenericController<Order>
         return Ok();
     }
     
-    /** <summary>Edit an order service in an existing order</summary>
+    /** <summary>Edit order services in an existing order</summary>
      * <param name="id">Id of the service order that you want to edit an order service in</param>
-     * <param name="orderService">Order service in body to edit in the service order</param>
+     * <param name="orderServices">Order services in body to edit in the service order</param>
      */
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OrderService[]))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpPut("{id}/orderServices")]
-    public ActionResult PutOrderService(string id, [FromBody] OrderService orderService)
+    public ActionResult PutOrderServices(string id, [FromBody] OrderService[] orderServices)
     {
         return Ok();
     }
@@ -94,7 +98,7 @@ public class ServiceOrderController : GenericController<Order>
      * <param name="id">Id of the service order that you want to remove a service from</param>
      * <param name="orderServiceId">Id of the order service to remove from the service order</param>
      */
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpDelete("{id}/orderServices/{orderServiceId}")]
     public ActionResult DeleteOrderService(string id, string orderServiceId)

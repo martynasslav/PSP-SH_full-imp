@@ -10,7 +10,13 @@ namespace PoSSapi.Controllers;
 [Route("[controller]")]
 public class ProductOrderController : GenericController<ProductOrder>
 {
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    protected class OrderProductReturnObject
+    {
+        public int totalItems { get; set; }
+        public Shift[] itemList { get; set; }
+    }
+    
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnObject))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [HttpGet]
     public ActionResult GetAll([FromQuery] string? locationId, [FromQuery] OrderStatusState? status,
@@ -56,7 +62,7 @@ public class ProductOrderController : GenericController<ProductOrder>
      * <param name="itemsPerPage">Number of order products returned in the response</param>
      * <param name="pageNum">Number of the chunk of order products returned in the response</param>
      */
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OrderProduct[]))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OrderProductReturnObject[]))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpGet("{id}/orderProducts")]
     public ActionResult GetOrderProducts(string id, [FromQuery] int itemsPerPage = 10, [FromQuery] int pageNum = 0)
@@ -68,8 +74,7 @@ public class ProductOrderController : GenericController<ProductOrder>
      * <param name="id">Id of the product order that you want to add products to</param>
      * <param name="orderProducts">Order product list in body to add to the product order</param>
      */
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OrderProduct[]))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpPost("{id}/orderProducts")]
     public ActionResult PostOrderProducts(string id, [FromBody] OrderProduct[] orderProducts)
@@ -77,15 +82,14 @@ public class ProductOrderController : GenericController<ProductOrder>
         return Ok();
     }
     
-    /** <summary>Edit an order product in an existing order</summary>
+    /** <summary>Edit order products in an existing order</summary>
      * <param name="id">Id of the product order that you want to edit an order product in</param>
-     * <param name="orderProduct">Order product in body to edit in the product order</param>
+     * <param name="orderProducts">Order products in body to edit in the product order</param>
      */
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OrderProduct[]))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpPut("{id}/orderProducts")]
-    public ActionResult PutOrderProduct(string id, [FromBody] OrderProduct orderProduct)
+    public ActionResult PutOrderProducts(string id, [FromBody] OrderProduct[] orderProducts)
     {
         return Ok();
     }
@@ -94,7 +98,7 @@ public class ProductOrderController : GenericController<ProductOrder>
      * <param name="id">Id of the product order that you want to remove a product from</param>
      * <param name="orderProductId">Id of the order product to remove from the product order</param>
      */
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpDelete("{id}/orderProducts/{orderProductId}")]
     public ActionResult DeleteOrderProduct(string id, string orderProductId)
