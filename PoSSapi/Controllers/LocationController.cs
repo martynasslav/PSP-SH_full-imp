@@ -79,6 +79,14 @@ public class LocationController : GenericController<Location>
         ShiftReturnObject returnObject = new ShiftReturnObject { totalItems = totalItems, itemList = objectList };
         return Ok(returnObject);
     }
+    
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpGet("{id}/shift/{shiftId}")]
+    public ActionResult<Shift> GetShift(string id, string shiftId)
+    {
+        return Ok(RandomGenerator.GenerateRandom<Shift>(id));
+    }
 
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
