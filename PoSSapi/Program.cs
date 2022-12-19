@@ -1,4 +1,11 @@
 using System.Reflection;
+using PoSSapi.Database;
+
+using (var db = new DbEntities())
+{
+    db.Database.EnsureDeleted();
+    db.Database.EnsureCreated();
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
