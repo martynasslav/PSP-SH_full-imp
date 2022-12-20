@@ -88,13 +88,13 @@ public class LocationController : GenericController<Location>
         return Ok(RandomGenerator.GenerateRandom<Shift>(id));
     }
 
-    [ProducesResponseType(StatusCodes.Status201Created)]
+    /*[ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [HttpPost("{id}/shift")]
     public ActionResult PostShift(string id, [FromBody] Shift newObject)
     {
         return CreatedAtAction(nameof(Get), new { id = "1" }, newObject);
-    }
+    }*/
 
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

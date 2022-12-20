@@ -30,11 +30,12 @@ namespace PoSSapi.Controllers
             }
         }
 
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        /*[ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpGet("{id}")]
         public ActionResult<T> Get(string id)
         {
+
             return Ok(RandomGenerator.GenerateRandom<T>(id));
         }
 
@@ -60,6 +61,6 @@ namespace PoSSapi.Controllers
         public ActionResult Delete(string id)
         {
             return Ok();
-        }
+        }*/
     }
 }
