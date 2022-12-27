@@ -9,5 +9,7 @@ namespace PoSSapi.Database
         public DbEntities(DbContextOptions<DbEntities> options) : base(options) { }
 
         public DbSet<Product> Products { get; set; }
+        public DbSet<Booking> Bookings { get; set; }
+        public DbSet<Service> Services { get; set; }
     }
 }

@@ -8,7 +8,7 @@ namespace PoSSapi.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class ProductController : GenericController<Product>
+public class ProductController : ControllerBase
 {
     private IProductRepository _productRepository;
 
@@ -17,38 +17,24 @@ public class ProductController : GenericController<Product>
        _productRepository= productRepository;
     }
 
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnObject))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(200)]
     [HttpGet(Name = "GetAllProducts")]
-    public ActionResult GetAllProducts([FromQuery] string? locationId, [FromQuery] string? categoryId, 
+    public IEnumerable<Product> GetAllProducts([FromQuery] string? locationId, [FromQuery] string? categoryId, 
         [FromQuery] int itemsPerPage=10, [FromQuery] int pageNum=0)
     {
-        if (itemsPerPage <= 0 || pageNum < 0)
-        {
-            return BadRequest("Invalid itemsPerPage or pageNum");
-        }
-        
-        int totalItems = 20;  
-        int itemsToDisplay = ControllerTools.calculateItemsToDisplay(itemsPerPage, pageNum, totalItems);
+        var products = _productRepository.GetAllProducts();
 
-        var objectList = new Product[itemsToDisplay];
-        for (var i = 0; i < itemsToDisplay; i++)
+        if (locationId != null)
         {
-            objectList[i] = (Product)_productRepository.GetAllProducts();
-            
-            if (locationId != null)
-            {
-                objectList[i].LocationId = locationId;
-            }
-            
-            if (categoryId != null)
-            {
-                objectList[i].CategoryId = categoryId;
-            }
+            products = products.Where(p => p.LocationId == locationId);
         }
-        
-        ReturnObject returnObject = new ReturnObject {totalItems = totalItems, itemList = objectList};
-        return Ok(returnObject);
+
+        if (categoryId != null)
+        {
+            products = products.Where(p => p.CategoryId == categoryId);
+        }
+
+        return products.Skip(pageNum).Take(itemsPerPage);
     }
 
     [ProducesResponseType(200)]
@@ -87,7 +73,7 @@ public class ProductController : GenericController<Product>
         }
 
         product.Id = _product.Id;
-        _productRepository.UpdateProducts(product);
+        _productRepository.UpdateProduct(product);
         return Ok(product);
     }
 

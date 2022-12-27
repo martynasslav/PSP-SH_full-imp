@@ -34,7 +34,7 @@ namespace PoSSapi.Repository
             return _dbEntities.Products.Find(id);
         }
 
-        public void UpdateProducts(Product product)
+        public void UpdateProduct(Product product)
         {
             var _product = _dbEntities.Products.Find(product.Id);
             _product.Id = product.Id;

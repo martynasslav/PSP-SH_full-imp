@@ -7,7 +7,7 @@ namespace PoSSapi.Repository
         void CreateProduct(Product product);
         Product GetProduct(string id);
         IEnumerable<Product> GetAllProducts();
-        void UpdateProducts(Product product);
+        void UpdateProduct(Product product);
         void DeleteProduct(Product product);
     }
 }

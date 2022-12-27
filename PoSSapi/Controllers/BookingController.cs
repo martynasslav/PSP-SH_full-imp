@@ -3,47 +3,94 @@ using Classes;
 using PoSSapi.Tools;
 using Dtos;
 using System.ComponentModel.DataAnnotations;
+using PoSSapi.Repository;
 
 namespace PoSSapi.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class BookingController : GenericController<Booking>
+public class BookingController : ControllerBase
 {
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnObject))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [HttpGet()]
-    public ActionResult GetAll([FromQuery] string? locationId, [FromQuery] string? customerId,
+    private IBookingRepository _bookingRepository;
+
+    public BookingController(IBookingRepository bookingRepository)
+    {
+        _bookingRepository = bookingRepository;
+    }
+
+    [ProducesResponseType(200)]
+    [HttpGet(Name = "GetAllBookings")]
+    public IEnumerable<Booking> GetAllBookings([FromQuery] string? locationId, [FromQuery] string? customerId,
         [FromQuery] int itemsPerPage = 10, [FromQuery] int pageNum = 0)
     {
-        if (itemsPerPage <= 0)
-        {
-            return BadRequest("itemsPerPage must be greater than 0");
-        }
-        if (pageNum < 0)
-        {
-            return BadRequest("pageNum must be 0 or greater");
-        }
+        var bookings = _bookingRepository.GetAllBookings();
 
-        int totalItems = 20;
-        int itemsToDisplay = ControllerTools.calculateItemsToDisplay(itemsPerPage, pageNum, totalItems);
-
-        var objectList = new Booking[itemsToDisplay];
-        for (int i = 0; i < itemsToDisplay; i++)
+        if (locationId != null)
         {
-            objectList[i] = RandomGenerator.GenerateRandom<Booking>();
-            if (locationId != null)
-            {
-                objectList[i].LocationId = locationId;
-            }
-            if (customerId != null)
-            {
-                objectList[i].CustomerId = customerId;
-            }
+            bookings = bookings.Where(b => b.LocationId == locationId);
+        }
+        if (customerId != null)
+        {
+            bookings = bookings.Where(b => b.CustomerId == customerId);
         }
 
-        ReturnObject returnObject = new ReturnObject { totalItems = totalItems, itemList = objectList };
-        return Ok(returnObject);
+        return bookings.Skip(pageNum).Take(itemsPerPage);
+    }
+
+    [ProducesResponseType(200)]
+    [ProducesResponseType(204)]
+    [HttpGet("{id}", Name="GetBooking")]
+    public ActionResult<Booking> GetBooking(string id)
+    {
+        var booking = _bookingRepository.GetBbooking(id);
+
+        if(booking == null)
+        {
+            return NoContent();
+        }
+
+        return booking;
+    }
+
+    [ProducesResponseType(201)]
+    [HttpPost(Name = "CreateBooking")]
+    public ActionResult<Booking> CreateBooking(Booking booking) 
+    {
+        _bookingRepository.CreateBooking(booking);
+        return CreatedAtAction("GetBooking", new { id = booking.Id }, booking);
+    }
+
+    [ProducesResponseType(200)]
+    [ProducesResponseType(404)]
+    [HttpPut("{id}", Name = "UpdateBooking")]
+    public ActionResult<Booking> UpdateBooking(string id, Booking booking)
+    {
+        var _booking = _bookingRepository.GetBbooking(id);
+
+        if (_booking == null)
+        {
+            return NotFound();
+        }
+
+        booking.Id = _booking.Id;
+        _bookingRepository.UpdateBooking(booking);
+        return Ok(booking);
+    }
+
+    [ProducesResponseType(200)]
+    [ProducesResponseType(404)]
+    [HttpDelete("{id}", Name = "DeleteBooking")]
+    public ActionResult<Booking> DeleteBooking(string id) 
+    {
+        var booking = _bookingRepository.GetBbooking(id);
+
+        if (booking == null)
+        {
+            return NotFound();
+        }
+
+        _bookingRepository.DeleteBooking(booking);
+
+        return Ok();
     }
 }
-

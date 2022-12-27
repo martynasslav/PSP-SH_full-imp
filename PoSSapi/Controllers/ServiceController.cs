@@ -1,70 +1,95 @@
 using Classes;
 using Dtos;
 using Microsoft.AspNetCore.Mvc;
+using PoSSapi.Repository;
 using PoSSapi.Tools;
 
 namespace PoSSapi.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class ServiceController : GenericController<Service>
+public class ServiceController : ControllerBase
 {
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnObject))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [HttpGet]
-    public ActionResult GetAll([FromQuery] string? locationId, [FromQuery] string? categoryId,
-        [FromQuery] int itemsPerPage = 10, [FromQuery] int pageNum = 0)
+    private readonly IServiceRepository _serviceRepository;
+
+    public ServiceController(IServiceRepository serviceRepository)
     {
-        if (itemsPerPage <= 0 || pageNum < 0)
-        {
-            return BadRequest("Invalid itemsPerPage or pageNum");
-        }
-
-        int totalItems = 20;
-        int itemsToDisplay = ControllerTools.calculateItemsToDisplay(itemsPerPage, pageNum, totalItems);
-
-        var objectList = new Service[itemsToDisplay];
-        for (var i = 0; i < itemsToDisplay; i++)
-        {
-            objectList[i] = RandomGenerator.GenerateRandom<Service>();
-
-            if (locationId != null)
-            {
-                objectList[i].LocationId = locationId;
-            }
-
-            if (categoryId != null)
-            {
-                objectList[i].CategoryId = categoryId;
-            }
-        }
-
-        ReturnObject returnObject = new ReturnObject { totalItems = totalItems, itemList = objectList };
-        return Ok(returnObject);
+        _serviceRepository = serviceRepository;
     }
 
-    /** <summary>Gets amount of orders for a service in a specified period, if a period isnt specified returns all available order count</summary>
-     * <param name="id" example="">Id of the service</param>
-     * <param name="startDate" example="">Period start date</param>
-     * <param name="endDate" example="">Period end date</param>
-     */
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [HttpGet("{id}/orders")]
-    public ActionResult GetServiceStatistics(string id, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
+    [ProducesResponseType(200)]
+    [HttpGet(Name = "GetAllServices")]
+    public IEnumerable<Service> GetAllServices([FromQuery] string? locationId, [FromQuery] string? categoryId,
+        [FromQuery] int itemsPerPage = 10, [FromQuery] int pageNum = 0)
     {
-        var listSize = new Random().Next(1, 10);
+        var services = _serviceRepository.GetAllServices();
 
-        var resultList = new List<ServiceStatisticDto>(listSize);
-
-        for (int i = 0; i < listSize; i++)
+        if (locationId != null)
         {
-            var randomStatistic = RandomGenerator.GenerateRandom<ServiceStatisticDto>();
-            randomStatistic.ServiceId = id;
-            resultList.Add(randomStatistic);
+            services = services.Where(s => s.LocationId == locationId);
         }
 
-        return Ok(resultList);
+        if (categoryId != null)
+        {
+            services = services.Where(s => s.CategoryId == categoryId);
+        }
+
+        return services.Skip(pageNum).Take(itemsPerPage);
+    }
+
+    [ProducesResponseType(200)]
+    [ProducesResponseType(204)]
+    [HttpGet("{id}", Name = "GetService")]
+    public ActionResult<Service> GetService(string id)
+    {
+        var service = _serviceRepository.GetService(id);
+
+        if (service == null)
+        {
+            return NoContent();
+        }
+
+        return service;
+    }
+
+    [ProducesResponseType(201)]
+    [HttpPost(Name = "CreateService")]
+    public ActionResult<Service> CreateService(Service service)
+    {
+        _serviceRepository.CreateService(service);
+        return CreatedAtAction("GetService", new { id = service.Id }, service);
+    }
+
+    [ProducesResponseType(200)]
+    [ProducesResponseType(404)]
+    [HttpPut("{id}", Name = "UpdateService")]
+    public ActionResult<Service> UpdateService(string id, Service service) 
+    {
+        var _service = _serviceRepository.GetService(id);
+
+        if (_service == null) 
+        {
+            return NotFound();
+        }
+
+        service.Id = _service.Id;
+        _serviceRepository.UpdateService(service);
+        return Ok(service);
+    }
+
+    [ProducesResponseType(200)]
+    [ProducesResponseType(404)]
+    [HttpDelete("{id}", Name = "DeleteService")]
+    public ActionResult<Service> DeleteService(string id)
+    {
+        var service = _serviceRepository.GetService(id);
+
+        if (service == null)
+        {
+            return NotFound();
+        }
+
+        _serviceRepository.DeleteService(service);
+        return Ok();
     }
 }
