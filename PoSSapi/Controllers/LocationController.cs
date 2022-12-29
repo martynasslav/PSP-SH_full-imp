@@ -140,6 +140,9 @@ public class LocationController : ControllerBase
 			EmployeeId = updatedObject.EmployeeId
 		};
 
+		_shiftRepository.UpdateShift(shift);
+		_shiftRepository.Save();
+
 		return Ok();
 	}
 
@@ -157,6 +160,7 @@ public class LocationController : ControllerBase
 			return NotFound();
 
 		_shiftRepository.DeleteShift(shift);
+		_shiftRepository.Save();
 
 		return NoContent();
 	}
