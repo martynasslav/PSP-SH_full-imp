@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Classes;
-using PoSSapi.Tools;
+using PoSSapi.Classes;
 using PoSSapi.Controllers;
 
 namespace Controllers;
