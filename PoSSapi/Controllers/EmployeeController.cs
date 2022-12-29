@@ -42,7 +42,7 @@ namespace PoSSapi.Controllers
 			if (locationId != null)
 				employees = employees.Where(e => e.LocationId == locationId);
 
-			employees.Skip(pageNum * itemsPerPage).Take(itemsPerPage);
+			employees = employees.Skip(pageNum * itemsPerPage).Take(itemsPerPage);
 
 			return Ok(employees);
 		}
