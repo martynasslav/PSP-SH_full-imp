@@ -32,7 +32,7 @@ if (app.Environment.IsDevelopment())
     {
         using (var db = scope.ServiceProvider.GetService<DbEntities>())
         {
-            db.Database.EnsureDeleted();
+            db!.Database.EnsureDeleted();
             db.Database.EnsureCreated();
         }
     }
