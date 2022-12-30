@@ -16,6 +16,10 @@ namespace PoSSapi.Controllers
             _categoryRepository = categoryRepository;
         }
 
+        /// <summary>
+		/// Get categories
+		/// </summary>
+		/// <response code="200">Information about categories returned.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpGet()]
@@ -39,6 +43,10 @@ namespace PoSSapi.Controllers
             return Ok(categories);
         }
 
+        /// <summary>
+		/// Get category by ID
+		/// </summary>
+		/// <response code="200">Information about category returned.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Category))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpGet("{id}")]
@@ -52,6 +60,10 @@ namespace PoSSapi.Controllers
             return Ok(category);
         }
 
+        /// <summary>
+		/// Create category
+		/// </summary>
+		/// <response code="201">Category created.</response>
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(Category))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpPost]
@@ -69,6 +81,10 @@ namespace PoSSapi.Controllers
             return CreatedAtAction(nameof(GetCategoryById), new {id = category.Id}, category);
         }
 
+        /// <summary>
+		/// Update category
+		/// </summary>
+		/// <response code="200">Category updated.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpPut("{id}")]
@@ -88,6 +104,10 @@ namespace PoSSapi.Controllers
             return Ok();
         }
 
+        /// <summary>
+		/// Delete a category
+		/// </summary>
+		/// <response code="204">Category deleted.</response>
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpDelete("{id}")]

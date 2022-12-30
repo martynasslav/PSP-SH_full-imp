@@ -1,20 +1,30 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Classes;
-using PoSSapi.Tools;
+using PoSSapi.Dtos;
 using Enums;
-using System.ComponentModel.DataAnnotations;
+using PoSSapi.Repositories;
 
 namespace PoSSapi.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class DiscountController : GenericController<Discount>
+    public class DiscountController : ControllerBase
     {
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnObject))]
+        private readonly IDiscountRepository _discountRepository;
+
+        public DiscountController(IDiscountRepository discountRepository)
+        {
+            _discountRepository = discountRepository;
+        }
+
+        /// <summary>
+		/// Get discounts
+		/// </summary>
+		/// <response code="200">Information about discounts returned.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpGet()]
-        public ActionResult GetAll([FromQuery] DiscountTargetType? discountTarget, [FromQuery] string? targetId,
-             [FromQuery] int itemsPerPage = 10, [FromQuery] int pageNum = 0)
+        public ActionResult GetAll([FromQuery] string? targetId, [FromQuery] int itemsPerPage = 10, [FromQuery] int pageNum = 0)
         {
             if (itemsPerPage <= 0)
             {
@@ -25,36 +35,100 @@ namespace PoSSapi.Controllers
                 return BadRequest("pageNum must be 0 or greater");
             }
 
-            int totalItems = 20;
-            int itemsToDisplay = ControllerTools.calculateItemsToDisplay(itemsPerPage, pageNum, totalItems);
+            var discounts = _discountRepository.GetDiscounts();
 
-            var objectList = new Discount[itemsToDisplay];
-            for (int i = 0; i < itemsToDisplay; i++)
+            if(targetId == null)
             {
-                objectList[i] = RandomGenerator.GenerateRandom<Discount>();
-                if (discountTarget != null)
-                {
-                    objectList[i].TargetType = (DiscountTargetType)discountTarget;
-                }
-                if (targetId != null)
-                {
-                    objectList[i].TargetId = targetId;
-                }
+                discounts = discounts.Where(x => x.TargetId == targetId);
             }
+            discounts = discounts.Skip(pageNum * itemsPerPage).Take(itemsPerPage);
 
-            ReturnObject returnObject = new ReturnObject { totalItems = totalItems, itemList = objectList };
-            return Ok(returnObject);
+            return Ok(discounts);
         }
 
-        /** <summary>Send an email promotion of this discount</summary>
-             * <param name="id" example="">Id of the discount you wish to promote</param>
-        */
+        /// <summary>
+		/// Get discount by ID
+		/// </summary>
+		/// <response code="200">Information about discount returned.</response>
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Discount))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpGet("{id}")]
+        public ActionResult GetDiscountById(string id)
+        {
+            var discount = _discountRepository.GetDiscountById(id);
+            if(discount == null)
+            {
+                return NotFound();
+            }
+            return Ok(discount);
+        }
+
+        /// <summary>
+		/// Create a new discount
+		/// </summary>
+		/// <response code="201">Discount created.</response>
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(Discount))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [HttpPost]
+        public ActionResult CreateDiscount([FromBody] DiscountCreationDto newDiscount)
+        {
+            var discount = new Discount
+            {
+                Id = Guid.NewGuid().ToString(),
+                Type = newDiscount.Type,
+                Amount = newDiscount.Amount,
+                TargetType = newDiscount.TargetType,
+                TargetId = newDiscount.TargetId
+            };
+            _discountRepository.InsertDiscount(discount);
+            _discountRepository.Save();
+
+            return CreatedAtAction(nameof(GetDiscountById), new {id = discount.Id}, discount);
+        }
+
+        /// <summary>
+		/// Update discount information
+		/// </summary>
+		/// <response code="200">Discount  information updated.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [HttpPost("{id}/promote")]
-        public ActionResult PromoteDiscountToCustomers(string id)
+        [HttpPut("{id}")]
+        public ActionResult UpdateDiscount(string id, [FromBody] DiscountCreationDto updatedDiscount)
         {
+            var discount = _discountRepository.GetDiscountById(id);
+            if(discount == null)
+            {
+                return NotFound();
+            }
+            discount.Amount = updatedDiscount.Amount;
+            discount.TargetType = updatedDiscount.TargetType;
+            discount.TargetId = updatedDiscount.TargetId;
+            discount.Type = updatedDiscount.Type;
+
+            _discountRepository.UpdateDiscount(discount);
+            _discountRepository.Save();
+
             return Ok();
+        }
+
+        /// <summary>
+		/// Delete a discount
+		/// </summary>
+		/// <response code="204">Discount deleted.</response>
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpDelete("{id}")]
+        public ActionResult DeleteDiscount(string id)
+        {
+            var discount = _discountRepository.GetDiscountById(id);
+            if(discount == null)
+            {
+                return NotFound();
+            }
+            _discountRepository.DeleteDiscount(discount);
+            _discountRepository.Save();
+
+            return NoContent();
         }
     }
 }
