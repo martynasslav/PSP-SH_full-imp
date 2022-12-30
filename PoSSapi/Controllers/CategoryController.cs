@@ -1,17 +1,25 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Classes;
-using PoSSapi.Tools;
+using PoSSapi.Dtos;
+using PoSSapi.Repositories;
 
 namespace PoSSapi.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class CategoryController : GenericController<Category>
+    public class CategoryController : ControllerBase
     {
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnObject))]
+        private readonly ICategoryRepository _categoryRepository;
+
+        public CategoryController(ICategoryRepository categoryRepository)
+        {
+            _categoryRepository = categoryRepository;
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpGet()]
-        public ActionResult GetAll([FromQuery] int itemsPerPage=10, [FromQuery] int pageNum=0)
+        public ActionResult GetAll([FromQuery] string? name, [FromQuery] int itemsPerPage=10, [FromQuery] int pageNum=0)
         {
             if (itemsPerPage <= 0) {
                 return BadRequest("itemsPerPage must be greater than 0");
@@ -19,17 +27,81 @@ namespace PoSSapi.Controllers
             if (pageNum < 0) {
                 return BadRequest("pageNum must be 0 or greater");
             }
+            
+            var categories = _categoryRepository.GetCategories();
 
-            int totalItems = 20;  
-            int itemsToDisplay = ControllerTools.calculateItemsToDisplay(itemsPerPage, pageNum, totalItems);
-
-            var objectList = new Category[itemsToDisplay];
-            for (int i = 0; i < itemsToDisplay; ++i) {
-                objectList[i] = RandomGenerator.GenerateRandom<Category>();
+            if(name != null)
+            {
+                categories = categories.Where(c => c.Name == name);
             }
+            categories = categories.Skip(pageNum * itemsPerPage).Take(itemsPerPage);
 
-            ReturnObject returnObject = new ReturnObject {totalItems = totalItems, itemList = objectList};
-            return Ok(returnObject);
+            return Ok(categories);
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Category))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpGet("{id}")]
+        public ActionResult GetCategoryById(string id)
+        {
+            var category = _categoryRepository.GetCategoryById(id);
+            if(category == null)
+            {
+                return NotFound();
+            }
+            return Ok(category);
+        }
+
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(Category))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [HttpPost]
+        public ActionResult CreateCategory([FromBody] CategoryCreationDto newCategory)
+        {
+            var category = new Category
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = newCategory.Name,
+                ClientId = newCategory.ClientId
+            };
+            _categoryRepository.InsertCategory(category);
+            _categoryRepository.Save();
+
+            return CreatedAtAction(nameof(GetCategoryById), new {id = category.Id}, category);
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpPut("{id}")]
+        public ActionResult UpdateCategory(string id, [FromBody] CategoryCreationDto updatedCategory)
+        {
+            var category = _categoryRepository.GetCategoryById(id);
+            if(category == null)
+            {
+                return NotFound();
+            }
+            category.Name = updatedCategory.Name;
+            category.ClientId = updatedCategory.ClientId;
+
+            _categoryRepository.UpdateCategory(category);
+            _categoryRepository.Save();
+
+            return Ok();
+        }
+
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpDelete("{id}")]
+        public ActionResult DeleteCategory(string id)
+        {
+            var category = _categoryRepository.GetCategoryById(id);
+            if(category == null)
+            {
+                return NotFound();
+            }
+            _categoryRepository.DeleteCategory(category);
+            _categoryRepository.Save();
+
+            return NoContent();
         }
     }
 }
