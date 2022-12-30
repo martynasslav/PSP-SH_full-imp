@@ -1,4 +1,7 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+#pragma warning disable 8618
 
 namespace Classes;
 
@@ -13,7 +16,9 @@ public class Product
     [Required]
     public decimal Tax { get; set; }
     [Required]
+    [ForeignKey("Category")]
     public string CategoryId { get; set; }
     [Required]
+    [ForeignKey("Location")]
     public string LocationId { get; set; }
 }

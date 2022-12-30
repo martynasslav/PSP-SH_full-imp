@@ -1,7 +1,10 @@
-namespace Classes;
-
 using Enums;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+#pragma warning disable 8618
+
+namespace Classes;
 
 public class Booking
 {
@@ -16,7 +19,9 @@ public class Booking
     [Required]
     public BookingState State { get; set; }
     [Required]
+    [ForeignKey("Customer")]
     public string CustomerId { get; set; }
     [Required]
+    [ForeignKey("Location")]
     public string LocationId { get; set; }
 }

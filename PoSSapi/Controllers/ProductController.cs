@@ -1,6 +1,7 @@
 using Classes;
 using Microsoft.AspNetCore.Mvc;
 using PoSSapi.Database;
+using PoSSapi.Dtos;
 using PoSSapi.Repository;
 using PoSSapi.Tools;
 
@@ -17,11 +18,18 @@ public class ProductController : ControllerBase
        _productRepository= productRepository;
     }
 
-    [ProducesResponseType(200)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [HttpGet(Name = "GetAllProducts")]
-    public IEnumerable<Product> GetAllProducts([FromQuery] string? locationId, [FromQuery] string? categoryId, 
+    public ActionResult GetAllProducts([FromQuery] string? locationId, [FromQuery] string? categoryId, 
         [FromQuery] int itemsPerPage=10, [FromQuery] int pageNum=0)
     {
+        if (itemsPerPage <= 0)
+            return BadRequest("itemsPerPage must be greater than 0");
+
+        if (pageNum < 0)
+            return BadRequest("pageNum must be 0 or greater");
+
         var products = _productRepository.GetAllProducts();
 
         if (locationId != null)
@@ -34,12 +42,14 @@ public class ProductController : ControllerBase
             products = products.Where(p => p.CategoryId == categoryId);
         }
 
-        return products.Skip(pageNum).Take(itemsPerPage);
+        products = products.Skip(pageNum * itemsPerPage).Take(itemsPerPage);
+
+        return Ok(products);
     }
 
-    [ProducesResponseType(200)]
-    [ProducesResponseType(204)]
-    [HttpGet("{id}", Name ="GetProduct")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Product))]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpGet("{id}", Name = "GetProduct")]
     public ActionResult<Product> GetProduct(string id) 
     {
         var product = _productRepository.GetProduct(id);
@@ -52,17 +62,28 @@ public class ProductController : ControllerBase
         return product;
     }
 
-    [ProducesResponseType(201)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
     [HttpPost(Name = "CreateProduct")]
-    public ActionResult<Product> CreateProduct(Product product) 
+    public ActionResult<Product> CreateProduct(CreateProductDto newProduct) 
     {
+        var product = new Product()
+        {
+            Id = Guid.NewGuid().ToString(),
+            Name = newProduct.Name,
+            Price = newProduct.Price,
+            Tax = newProduct.Tax,
+            CategoryId = newProduct.CategoryId,
+            LocationId = newProduct.LocationId
+        };
+
         _productRepository.CreateProduct(product);
+
         return CreatedAtAction("GetProduct", new { id = product.Id }, product);
     }
 
-    [ProducesResponseType(200)]
-    [ProducesResponseType(404)]
-    [HttpPut("{id}", Name ="UpdateProduct")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpPut("{id}", Name = "UpdateProduct")]
     public ActionResult<Product> UpdateProduct(string id, Product product) 
     {
         var _product = _productRepository.GetProduct(id);
@@ -73,13 +94,15 @@ public class ProductController : ControllerBase
         }
 
         product.Id = _product.Id;
+
         _productRepository.UpdateProduct(product);
+
         return Ok(product);
     }
 
-    [ProducesResponseType(200)]
-    [ProducesResponseType(404)]
-    [HttpDelete("{id}", Name ="DeleteProduct")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpDelete("{id}", Name = "DeleteProduct")]
     public ActionResult<Product> DeleteProduct(string id) 
     {
         var product = _productRepository.GetProduct(id);
