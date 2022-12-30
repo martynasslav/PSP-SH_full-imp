@@ -1,9 +1,10 @@
 using System.ComponentModel.DataAnnotations;
-using Classes;
 using Dtos;
 using Enums;
 using Microsoft.AspNetCore.Mvc;
 using PoSSapi.Tools;
+using Classes;
+using PoSSapi.Classes;
 
 namespace PoSSapi.Controllers;
 

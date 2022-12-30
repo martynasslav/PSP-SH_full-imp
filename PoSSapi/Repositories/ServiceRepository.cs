@@ -1,7 +1,7 @@
 ﻿using Classes;
 using PoSSapi.Database;
 
-namespace PoSSapi.Repository
+namespace PoSSapi.Repositories
 {
     public class ServiceRepository : IServiceRepository
     {

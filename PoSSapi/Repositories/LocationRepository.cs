@@ -1,3 +1,4 @@
+using Classes;
 using PoSSapi.Classes;
 using PoSSapi.Database;
 

@@ -3,7 +3,7 @@ using Classes;
 using PoSSapi.Tools;
 using Dtos;
 using System.ComponentModel.DataAnnotations;
-using PoSSapi.Repository;
+using PoSSapi.Repositories;
 using PoSSapi.Dtos;
 
 namespace PoSSapi.Controllers;

@@ -1,6 +1,6 @@
 ﻿using Classes;
 
-namespace PoSSapi.Repository
+namespace PoSSapi.Repositories
 {
     public interface IProductRepository
     {

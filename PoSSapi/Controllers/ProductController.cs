@@ -2,7 +2,7 @@ using Classes;
 using Microsoft.AspNetCore.Mvc;
 using PoSSapi.Database;
 using PoSSapi.Dtos;
-using PoSSapi.Repository;
+using PoSSapi.Repositories;
 using PoSSapi.Tools;
 
 namespace PoSSapi.Controllers;
