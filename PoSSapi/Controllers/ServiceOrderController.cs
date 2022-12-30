@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Classes;
-using Dtos;
+using PoSSapi.Classes;
 using Enums;
 using Microsoft.AspNetCore.Mvc;
 using PoSSapi.Tools;
