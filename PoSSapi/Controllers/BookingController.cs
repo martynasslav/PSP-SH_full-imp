@@ -3,47 +3,119 @@ using Classes;
 using PoSSapi.Tools;
 using Dtos;
 using System.ComponentModel.DataAnnotations;
+using PoSSapi.Repositories;
+using PoSSapi.Dtos;
 
 namespace PoSSapi.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class BookingController : GenericController<Booking>
+public class BookingController : ControllerBase
 {
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnObject))]
+    private IBookingRepository _bookingRepository;
+
+    public BookingController(IBookingRepository bookingRepository)
+    {
+        _bookingRepository = bookingRepository;
+    }
+
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [HttpGet()]
-    public ActionResult GetAll([FromQuery] string? locationId, [FromQuery] string? customerId,
+    [HttpGet(Name = "GetAllBookings")]
+    public ActionResult GetAllBookings([FromQuery] string? locationId, [FromQuery] string? customerId,
         [FromQuery] int itemsPerPage = 10, [FromQuery] int pageNum = 0)
     {
         if (itemsPerPage <= 0)
-        {
             return BadRequest("itemsPerPage must be greater than 0");
-        }
+
         if (pageNum < 0)
-        {
             return BadRequest("pageNum must be 0 or greater");
-        }
 
-        int totalItems = 20;
-        int itemsToDisplay = ControllerTools.calculateItemsToDisplay(itemsPerPage, pageNum, totalItems);
+        var bookings = _bookingRepository.GetAllBookings();
 
-        var objectList = new Booking[itemsToDisplay];
-        for (int i = 0; i < itemsToDisplay; i++)
+        if (locationId != null)
         {
-            objectList[i] = RandomGenerator.GenerateRandom<Booking>();
-            if (locationId != null)
-            {
-                objectList[i].LocationId = locationId;
-            }
-            if (customerId != null)
-            {
-                objectList[i].CustomerId = customerId;
-            }
+            bookings = bookings.Where(b => b.LocationId == locationId);
         }
 
-        ReturnObject returnObject = new ReturnObject { totalItems = totalItems, itemList = objectList };
-        return Ok(returnObject);
+        if (customerId != null)
+        {
+            bookings = bookings.Where(b => b.CustomerId == customerId);
+        }
+
+        bookings = bookings.Skip(pageNum * itemsPerPage).Take(itemsPerPage);
+
+        return Ok(bookings);
+    }
+
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Booking))]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpGet("{id}", Name = "GetBooking")]
+    public ActionResult<Booking> GetBooking(string id)
+    {
+        var booking = _bookingRepository.GetBbooking(id);
+
+        if(booking == null)
+        {
+            return NotFound();
+        }
+
+        return booking;
+    }
+
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [HttpPost(Name = "CreateBooking")]
+    public ActionResult<Booking> CreateBooking(CreateBookingDto newBooking) 
+    {
+        var booking = new Booking()
+        {
+            Id = Guid.NewGuid().ToString(),
+            StartDate = newBooking.StartDate,
+            EndDate = newBooking.EndDate,
+            PeopleCount = newBooking.PeopleCount,
+            State = newBooking.State,
+            CustomerId = newBooking.CustomerId,
+            LocationId = newBooking.LocationId
+        };
+
+        _bookingRepository.CreateBooking(booking);
+
+        return CreatedAtAction("GetBooking", new { id = booking.Id }, booking);
+    }
+
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpPut("{id}", Name = "UpdateBooking")]
+    public ActionResult<Booking> UpdateBooking(string id, Booking booking)
+    {
+        var _booking = _bookingRepository.GetBbooking(id);
+
+        if (_booking == null)
+        {
+            return NotFound();
+        }
+
+        booking.Id = _booking.Id;
+
+        _bookingRepository.UpdateBooking(booking);
+
+        return Ok(booking);
+    }
+
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpDelete("{id}", Name = "DeleteBooking")]
+    public ActionResult<Booking> DeleteBooking(string id) 
+    {
+        var booking = _bookingRepository.GetBbooking(id);
+
+        if (booking == null)
+        {
+            return NotFound();
+        }
+
+        _bookingRepository.DeleteBooking(booking);
+
+        return Ok();
     }
 }
-
