@@ -23,5 +23,5 @@ public class Order
     [ForeignKey("Employee")]
     public string EmployeeId { get; set; }
     [Required]
-    public List<string> Payments { get; set; }
+    public string Payments { get; set; }
 }
