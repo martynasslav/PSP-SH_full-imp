@@ -10,11 +10,21 @@ namespace PoSSapi.Controllers
     public class CustomerController : ControllerBase
     {
         private readonly ICustomerRepository _customerRepository;
+        // private readonly IPaymentRepository _paymentRepository;
 
-        public CustomerController(ICustomerRepository customerRepository)
+
+        public CustomerController(ICustomerRepository customerRepository )
         {
             _customerRepository = customerRepository;
         }
+
+        /* Uncomment this after payment is implemented and remove the constructor 
+        public CustomerController(ICustomerRepository customerRepository, IPaymentRepository paymentRepository)
+        {
+            _customerRepository = customerRepository;
+            _paymentRepository = paymentRepository;
+        }
+        */
 
         /// <summary>
 		/// Get customers by name
@@ -136,17 +146,14 @@ namespace PoSSapi.Controllers
         [HttpGet("{id}/spending")]
         public ActionResult GetCustomerSpendingById(string id)
         {
-            /*var spendingDto = RandomGenerator.GenerateRandom<SpendingDto>();
-            spendingDto.CustomerId = id;
-            spendingDto.Payments = new List<PaymentDto>();*/
-
-            // var amountOfPayments = new Random().Next(1, 10);
-
-            /*for (int i = 0; i < amountOfPayments; i++)
+            /* Placeholder code untill payment is implemented. Unsure if this will work.
+            var payments = _paymentRepository.GetPayments().Where(x => x.CustomerId == id);
+            if (!payments.Any())
             {
-                //WHY ARENT THESE RANDOM!!!???
-                spendingDto.Payments.Add(RandomGenerator.GenerateRandom<PaymentDto>());
-            }*/
+                return NotFound();
+            }
+            return Ok(payments);*/
+
             return Ok();
         }
     }
