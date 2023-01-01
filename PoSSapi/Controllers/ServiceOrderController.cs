@@ -1,9 +1,10 @@
 using System.ComponentModel.DataAnnotations;
-using Classes;
-using PoSSapi.Classes;
+using Dtos;
 using Enums;
 using Microsoft.AspNetCore.Mvc;
 using PoSSapi.Tools;
+using Classes;
+using PoSSapi.Classes;
 
 namespace PoSSapi.Controllers;
 
@@ -105,5 +106,30 @@ public class ServiceOrderController : GenericController<Order>
     public ActionResult DeleteOrderService(string id, string orderServiceId)
     {
         return Ok();
+    }
+
+    /** <summary>Gets amount of orders for a service in a specified period, if a period isnt specified returns all available order count</summary>
+     * <param name="id" example="">Id of the service</param>
+     * <param name="startDate" example="">Period start date</param>
+     * <param name="endDate" example="">Period end date</param>
+     */
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpGet("{id}/orders")]
+    public ActionResult GetServiceStatistics(string id, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
+    {
+        var listSize = new Random().Next(1, 10);
+
+        var resultList = new List<ServiceStatisticDto>(listSize);
+
+        for (int i = 0; i < listSize; i++)
+        {
+            var randomStatistic = RandomGenerator.GenerateRandom<ServiceStatisticDto>();
+            randomStatistic.ServiceId = id;
+            resultList.Add(randomStatistic);
+        }
+
+        return Ok(resultList);
     }
 }
