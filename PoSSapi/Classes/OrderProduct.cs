@@ -8,7 +8,8 @@ namespace Classes;
 
 public class OrderProduct
 {
-    [Key]
+    [Required]
+    [ForeignKey("ProductOrder")]
     public int TableNumber { get; set; }
     [Required]
     [ForeignKey("Product")]
