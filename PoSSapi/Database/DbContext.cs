@@ -12,6 +12,9 @@ namespace PoSSapi.Database
         public DbSet<Location> Locations { get; set; }
         public DbSet<Shift> Shifts { get; set; }
         public DbSet<Employee> Employees { get; set; }
+        public DbSet<Customer> Customers { get; set; }
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<Discount> Discounts { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<Service> Services { get; set; }
