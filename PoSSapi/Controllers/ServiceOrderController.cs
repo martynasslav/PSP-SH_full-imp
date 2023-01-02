@@ -61,6 +61,21 @@ public class ServiceOrderController : ControllerBase
         return Ok(orders);
     }
 
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Order))]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpGet("{id}", Name = "GetServiceOrder")]
+    public ActionResult<Order> GetOrder(string id)
+    {
+        var order = _orderRepository.GetOrder(id);
+
+        if (order == null)
+        {
+            return NoContent();
+        }
+
+        return order;
+    }
+
     /** <summary>Changes status of a certain service order</summary>
      * <param name="id" example="">Id of the service order that you want the status changed</param>
      * <param name="status" example="">Status that you want the service order to be in</param>
@@ -79,6 +94,8 @@ public class ServiceOrderController : ControllerBase
         }
 
         order.OrderStatus = status;
+
+        _orderRepository.UpdateOrder(order);
 
         return Ok();
     }
@@ -101,6 +118,42 @@ public class ServiceOrderController : ControllerBase
         _orderRepository.CreateOrder(order);
 
         return CreatedAtAction("GetAllServiceOrders", new { id = order.Id }, order);
+    }
+
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpPut("{id}", Name = "UpdateServiceOrder")]
+    public ActionResult<Order> UpdateOrder(string id, Order order)
+    {
+        var _order = _orderRepository.GetOrder(id);
+
+        if (_order == null)
+        {
+            return NotFound();
+        }
+
+        order.Id = _order.Id;
+
+        _orderRepository.UpdateOrder(order);
+
+        return Ok(order);
+    }
+
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpDelete("{id}", Name = "DeleteServiceOrder")]
+    public ActionResult<Order> DeleteOrder(string id)
+    {
+        var order = _orderRepository.GetOrder(id);
+
+        if (order == null)
+        {
+            return NotFound();
+        }
+
+        _orderRepository.DeleteOrder(order);
+
+        return NoContent();
     }
 
     /** <summary>Get order services of an existing order</summary>
@@ -145,7 +198,7 @@ public class ServiceOrderController : ControllerBase
      */
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [HttpPut("{id}/orderServices")]
+    [HttpPut("orderServices/{id}/put")]
     public ActionResult<OrderService> PutOrderServices(string id, OrderService orderService)
     {
         var _orderService = _serviceOrderRepository.GetServiceOrder(id);
@@ -167,7 +220,7 @@ public class ServiceOrderController : ControllerBase
      */
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [HttpDelete("{id}/orderServices/{orderServiceId}")]
+    [HttpDelete("orderServices/{id}/delete")]
     public ActionResult DeleteOrderService(string id)
     {
         var orderService = _serviceOrderRepository.GetServiceOrder(id);

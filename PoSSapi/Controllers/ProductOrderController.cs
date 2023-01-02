@@ -60,6 +60,21 @@ public class ProductOrderController : ControllerBase
         return Ok(productOrders);
     }
 
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ProductOrder))]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpGet("{id}", Name = "GetProductOrder")]
+    public ActionResult<ProductOrder> GetProductOrder(string id)
+    {
+        var productOrder = _productOrderRepository.GetProductOrder(id);
+
+        if (productOrder == null)
+        {
+            return NoContent();
+        }
+
+        return productOrder;
+    }
+
     /** <summary>Changes status of a certain product order</summary>
      * <param name="id" example="">Id of the product order that you want the status changed</param>
      * <param name="status" example="">Status that you want the product order to be in</param>
@@ -78,6 +93,8 @@ public class ProductOrderController : ControllerBase
         }
 
         productOrder.OrderStatus = status;
+
+        _productOrderRepository.UpdateProductOrder(productOrder);
 
         return Ok();
     }
@@ -104,7 +121,43 @@ public class ProductOrderController : ControllerBase
 
         return CreatedAtAction("GetAllProductOrders", new { id = productOrder.Id}, productOrder);
     }
-    
+
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpPut("{id}", Name = "UpdateProductOrder")]
+    public ActionResult<ProductOrder> UpdateOrder(string id, ProductOrder productOrder)
+    {
+        var _productOrder = _productOrderRepository.GetProductOrder(id);
+
+        if (_productOrder == null)
+        {
+            return NotFound();
+        }
+
+        productOrder.Id = _productOrder.Id;
+
+        _productOrderRepository.UpdateProductOrder(productOrder);
+
+        return Ok(productOrder);
+    }
+
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpDelete("{id}", Name = "DeleteProductOrder")]
+    public ActionResult<ProductOrder> DeleteProductOrder(string id)
+    {
+        var productOrder = _productOrderRepository.GetProductOrder(id);
+
+        if (productOrder == null)
+        {
+            return NotFound();
+        }
+
+        _productOrderRepository.DeleteProductOrder(productOrder);
+
+        return NoContent();
+    }
+
     /** <summary>Get order products of an existing order</summary>
      * <param name="id">Id of the product order that you want to get products of</param>
      */
@@ -151,7 +204,7 @@ public class ProductOrderController : ControllerBase
      */
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [HttpPut("{id}/orderProducts")]
+    [HttpPut("orderProducts/{id}/put")]
     public ActionResult<OrderProduct> PutOrderProduct(string id, OrderProduct orderProduct)
     {
         var _orderProduct = _orderProductRepository.GetOrderProduct(id);
@@ -173,7 +226,7 @@ public class ProductOrderController : ControllerBase
      */
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [HttpDelete("{id}/orderProducts/{orderProductId}")]
+    [HttpDelete("orderProducts/{id}/delete")]
     public ActionResult DeleteOrderProduct(string id)
     {
         var orderProduct = _orderProductRepository.GetOrderProduct(id);

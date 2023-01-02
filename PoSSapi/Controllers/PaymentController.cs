@@ -97,17 +97,24 @@ public class PaymentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpGet("{id}/invoice/{customerId}")]
-    public ActionResult<Payment> GetCustomerPayment([FromQuery][Required] string? customerId)
+    public ActionResult<Payment> SendInvoiceToCustomer(string id, string customerId)
     {
-        var payment = _paymentRepository.GetAllPayments();
-
-        payment = payment.Where(p => p.CustomerId == customerId);
+        var payment = _paymentRepository.GetPayment(id);
         
         if (payment == null)
         {
             return NotFound();
         }
-        
+
+        /*var customer = _customerRepository.GetCustomer(customerId);
+
+        if (customer == null)
+        {
+            return NotFound();
+        }
+
+        Function to send info to customers email*/
+
         return Ok(payment);
     }
 
@@ -127,6 +134,42 @@ public class PaymentController : ControllerBase
         }
 
         return payment;
+    }
+
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpPut("{id}", Name = "UpdatePayment")]
+    public ActionResult<Payment> UpdateProduct(string id, Payment payment)
+    {
+        var _payment = _paymentRepository.GetPayment(id);
+
+        if (_payment == null)
+        {
+            return NotFound();
+        }
+
+        payment.Id = _payment.Id;
+
+        _paymentRepository.UpdatePayment(payment);
+
+        return Ok(payment);
+    }
+
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpDelete("{id}", Name = "DeletePayment")]
+    public ActionResult<Payment> DeletePayment(string id)
+    {
+        var payment = _paymentRepository.GetPayment(id);
+
+        if (payment == null)
+        {
+            return NotFound();
+        }
+
+        _paymentRepository.DeletePayment(payment);
+
+        return NoContent();
     }
 }
 
