@@ -130,5 +130,24 @@ namespace PoSSapi.Controllers
 
             return NoContent();
         }
+
+        /// <summary>
+		/// Send an email promotion of this discount
+		/// </summary>
+		/// <response code="200">Email sent.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpPost("{id}/promote")]
+        public ActionResult PromoteDiscountToCustomers(string id)
+        {
+            var discount = _discountRepository.GetDiscountById(id);
+            if(discount == null)
+            {
+                return NotFound();
+            }
+
+            return Ok();
+        }
+
     }
 }
