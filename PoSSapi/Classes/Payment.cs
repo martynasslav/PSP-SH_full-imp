@@ -11,7 +11,7 @@ public class Payment
     [Key]
     public string Id { get; set; }
     [Required]
-    public byte[] FinancialDocuments { get; set; }
+    public byte FinancialDocuments { get; set; }
     [Required]
     [ForeignKey("Order")]
     public string OrderId { get; set; }

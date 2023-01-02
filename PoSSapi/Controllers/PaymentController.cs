@@ -5,17 +5,26 @@ using Enums;
 using Dtos;
 using PoSSapi.Controllers;
 using System.ComponentModel.DataAnnotations;
+using PoSSapi.Repositories;
+using PoSSapi.Dtos;
 
 namespace Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class PaymentController : GenericController<Payment>
+public class PaymentController : ControllerBase
 {
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnObject))]
+    private IPaymentRepository _paymentRepository;
+
+    public PaymentController(IPaymentRepository paymentRepository)
+    {
+        _paymentRepository = paymentRepository;
+    }
+
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [HttpGet()]
-    public ActionResult GetAll([FromQuery] string? orderId,
+    [HttpGet(Name = "GetAllPayments")]
+    public ActionResult GetAllPayments([FromQuery] string? orderId,
         [FromQuery] int itemsPerPage = 10, [FromQuery] int pageNum = 0)
     {
         if (itemsPerPage <= 0)
@@ -27,64 +36,97 @@ public class PaymentController : GenericController<Payment>
             return BadRequest("pageNum must be 0 or greater");
         }
 
-        int totalItems = 20;
-        int itemsToDisplay = ControllerTools.calculateItemsToDisplay(itemsPerPage, pageNum, totalItems);
+        var payments = _paymentRepository.GetAllPayments();
 
-        var objectList = new Payment[itemsToDisplay];
-        for (int i = 0; i < itemsToDisplay; i++)
+        if (orderId != null)
         {
-            objectList[i] = RandomGenerator.GenerateRandom<Payment>();
-            if (orderId != null)
-            {
-                objectList[i].OrderId = orderId;
-            }
+            payments = payments.Where(p => p.OrderId == orderId);
         }
 
-        ReturnObject returnObject = new ReturnObject { totalItems = totalItems, itemList = objectList };
-        return Ok(returnObject);
+        payments = payments.Skip(pageNum * itemsPerPage).Take(itemsPerPage);
+
+        return Ok(payments);
     }
 
     /** <summary>Only to be used when paying by card</summary>
       */
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [HttpPost("pay-card")]
-    public ActionResult PayForOrderWithCard([FromBody][Required] IncomingPaymentByCardDto payment)
+    public ActionResult PayForOrderWithCard([FromBody] CreatePaymentDto newPayment)
     {
-        return Ok();
+        var payment = new Payment()
+        {
+            Id = Guid.NewGuid().ToString(),
+            FinancialDocuments = newPayment.FinancialDocuments,
+            OrderId = newPayment.OrderId,
+            CompletionDate = newPayment.CompletionDate,
+            CustomerId = newPayment.CustomerId,
+            Type = (PaymentType)1
+        };
+
+        _paymentRepository.CreatePayment(payment);
+        
+        return CreatedAtAction("GetCheck", new { id = payment.Id}, payment);
     }
 
     /** <summary>Only to be used when paying with cash</summary>
       */
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [HttpPost("pay-cash")]
-    public ActionResult MarkOrderAsPaid([FromBody][Required] IncomingPaymentDto payment)
+    public ActionResult MarkOrderAsPaid([FromBody] CreatePaymentDto newPayment)
     {
-        return Ok();
+        var payment = new Payment()
+        {
+            Id = Guid.NewGuid().ToString(),
+            FinancialDocuments = newPayment.FinancialDocuments,
+            OrderId = newPayment.OrderId,
+            CompletionDate = newPayment.CompletionDate,
+            CustomerId = newPayment.CustomerId,
+            Type = (PaymentType)0
+        };
+
+        _paymentRepository.CreatePayment(payment);
+
+        return CreatedAtAction("GetCheck", new { id = payment.Id }, payment);
     }
 
-    /** <summary>Emails a specific invoice to a specific customer</summary>
-    * <param name="id" example="">Id of the payment that you want to send the invoice of</param>
-    * <param name="customerId" example="">Id of the customer whose recieving the invoice</param>
-    */
+    /** <summary>Gets all payments for specific customer</summary>
+      */
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [HttpPost("{id}/invoice/{customerId}")]
-    public ActionResult SendInvoiceToCustomer(string id, string customerId)
+    [HttpGet("{id}/invoice/{customerId}")]
+    public ActionResult<Payment> GetCustomerPayment([FromQuery][Required] string? customerId)
     {
-        return Ok();
+        var payment = _paymentRepository.GetAllPayments();
+
+        payment = payment.Where(p => p.CustomerId == customerId);
+        
+        if (payment == null)
+        {
+            return NotFound();
+        }
+        
+        return Ok(payment);
     }
 
     /** <summary>Returns a check</summary>
     * <param name="id" example="">Id of the payment that you want the check of</param>
     */
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Payment))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpGet("{id}/check")]
-    public ActionResult GetCheck(string id)
+    public ActionResult<Payment> GetCheck(string id)
     {
-        return Ok();
+        var payment = _paymentRepository.GetPayment(id);
+
+        if (payment == null)
+        {
+            return NotFound();
+        }
+
+        return payment;
     }
 }
 
