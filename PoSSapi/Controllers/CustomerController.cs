@@ -10,26 +10,19 @@ namespace PoSSapi.Controllers
     public class CustomerController : ControllerBase
     {
         private readonly ICustomerRepository _customerRepository;
-        // private readonly IPaymentRepository _paymentRepository;
+        private readonly IPaymentRepository _paymentRepository;
 
-
-        public CustomerController(ICustomerRepository customerRepository )
-        {
-            _customerRepository = customerRepository;
-        }
-
-        /* Uncomment this after payment is implemented and remove the constructor 
         public CustomerController(ICustomerRepository customerRepository, IPaymentRepository paymentRepository)
         {
             _customerRepository = customerRepository;
             _paymentRepository = paymentRepository;
         }
-        */
+
 
         /// <summary>
-		/// Get customers by name
-		/// </summary>
-		/// <response code="200">Information about customers returned.</response>
+        /// Get customers by name
+        /// </summary>
+        /// <response code="200">Information about customers returned.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpGet()]
@@ -137,24 +130,20 @@ namespace PoSSapi.Controllers
             return NoContent();
         }
 
-
-        // TODO - This part. Need Payment implementation
         /// <summary>Gets customers payments by id</summary>
         /// <param name="id">Id of the customer whose payments you wish to see</param>
+        /// <response code="200">Payments returned.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpGet("{id}/spending")]
         public ActionResult GetCustomerSpendingById(string id)
         {
-            /* Placeholder code untill payment is implemented. Unsure if this will work.
-            var payments = _paymentRepository.GetPayments().Where(x => x.CustomerId == id);
+            var payments = _paymentRepository.GetAllPayments().Where(x => x.CustomerId == id);
             if (!payments.Any())
             {
                 return NotFound();
             }
-            return Ok(payments);*/
-
-            return Ok();
+            return Ok(payments);
         }
     }
 }
