@@ -70,7 +70,7 @@ public class ServiceOrderController : ControllerBase
 
         if (order == null)
         {
-            return NoContent();
+            return NotFound();
         }
 
         return order;

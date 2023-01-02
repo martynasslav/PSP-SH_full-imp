@@ -69,7 +69,7 @@ public class ProductOrderController : ControllerBase
 
         if (productOrder == null)
         {
-            return NoContent();
+            return NotFound();
         }
 
         return productOrder;

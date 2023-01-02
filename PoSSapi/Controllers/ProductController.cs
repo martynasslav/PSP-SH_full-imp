@@ -56,7 +56,7 @@ public class ProductController : ControllerBase
 
         if (product == null)
         {
-            return NoContent();
+            return NotFound();
         }
 
         return product;
