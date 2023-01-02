@@ -1,44 +1,78 @@
 using System.ComponentModel.DataAnnotations;
 using Classes;
+using PoSSapi.Classes;
 using Enums;
 using Microsoft.AspNetCore.Mvc;
 using PoSSapi.Tools;
+using PoSSapi.Repositories;
+using PoSSapi.Dtos;
 
 namespace PoSSapi.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class ProductOrderController : GenericController<ProductOrder>
+public class ProductOrderController : ControllerBase
 {
+    private readonly IProductOrderRepository _productOrderRepository;
+    private readonly IOrderProductRepository _orderProductRepository;
+
+    public ProductOrderController(IProductOrderRepository productOrderRepository, IOrderProductRepository orderProductRepository)
+    {
+        _productOrderRepository = productOrderRepository;
+        _orderProductRepository = orderProductRepository;
+    }
+
     protected class OrderProductReturnObject
     {
         public int totalItems { get; set; }
         public Shift[] itemList { get; set; }
     }
     
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnObject))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [HttpGet]
-    public ActionResult GetAll([FromQuery] string? locationId, [FromQuery] OrderStatusState? status,
+    [HttpGet(Name = "GetAllProductOrders")]
+    public ActionResult GetAllProductOrders([FromQuery] string? customerId, [FromQuery] OrderStatusState? status,
         [FromQuery] int itemsPerPage = 10, [FromQuery] int pageNum = 0)
     {
-        if (itemsPerPage <= 0 || pageNum < 0)
+        if (itemsPerPage <= 0)
         {
-            return BadRequest("Invalid itemsPerPage or pageNum");
+            return BadRequest("itemsPerPage must be greater than 0");
         }
-        
-        int totalItems = 20;  
-        int itemsToDisplay = ControllerTools.calculateItemsToDisplay(itemsPerPage, pageNum, totalItems);
-
-        var objectList = new ProductOrder[itemsToDisplay];
-        for (var i = 0; i < itemsToDisplay; i++)
+        if (pageNum < 0)
         {
-            objectList[i] = RandomGenerator.GenerateRandom<ProductOrder>();
-            objectList[i].OrderStatus = status ?? OrderStatusState.New;
+            return BadRequest("pageNum must be 0 or greater");
         }
 
-        ReturnObject returnObject = new ReturnObject {totalItems = totalItems, itemList = objectList};
-        return Ok(returnObject);
+        var productOrders = _productOrderRepository.GetAllProductOrders();
+
+        if (customerId != null)
+        {
+            productOrders = productOrders.Where(p => p.CustomerId == customerId);
+        }
+
+        if (status != null)
+        {
+            productOrders = productOrders.Where(p => p.OrderStatus == status);
+        }
+
+        productOrders = productOrders.Skip (pageNum * itemsPerPage).Take(itemsPerPage);
+
+        return Ok(productOrders);
+    }
+
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ProductOrder))]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpGet("{id}", Name = "GetProductOrder")]
+    public ActionResult<ProductOrder> GetProductOrder(string id)
+    {
+        var productOrder = _productOrderRepository.GetProductOrder(id);
+
+        if (productOrder == null)
+        {
+            return NotFound();
+        }
+
+        return productOrder;
     }
 
     /** <summary>Changes status of a certain product order</summary>
@@ -51,59 +85,160 @@ public class ProductOrderController : GenericController<ProductOrder>
     [HttpPatch("{id}")]
     public ActionResult ChangeStatus(string id, [FromQuery][Required] OrderStatusState status)
     {
-        var productOrder = RandomGenerator.GenerateRandom<ProductOrder>(id);
+        var productOrder = _productOrderRepository.GetProductOrder(id);
+        
+        if (productOrder == null)
+        {
+            return NotFound();
+        }
+
         productOrder.OrderStatus = status;
+
+        _productOrderRepository.UpdateProductOrder(productOrder);
 
         return Ok();
     }
-    
+
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpPost("CreateProductOrder")]
+    public ActionResult PostProductOrder(CreateProductOrderDto newProductOrder)
+    {
+        var productOrder = new ProductOrder()
+        {
+            Id = Guid.NewGuid().ToString(),
+            StartDate = newProductOrder.StartDate,
+            FinishDate = newProductOrder.FinishDate,
+            CustomerId = newProductOrder.CustomerId,
+            EmployeeId = newProductOrder.EmployeeId,
+            Payments = newProductOrder.Payments,
+            TableNumber = newProductOrder.TableNumber,
+            Tips = newProductOrder.Tips,
+            OrderType = newProductOrder.OrderType
+        };
+
+        _productOrderRepository.CreateProductOrder(productOrder);
+
+        return CreatedAtAction("GetAllProductOrders", new { id = productOrder.Id}, productOrder);
+    }
+
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpPut("{id}", Name = "UpdateProductOrder")]
+    public ActionResult<ProductOrder> UpdateOrder(string id, ProductOrder productOrder)
+    {
+        var _productOrder = _productOrderRepository.GetProductOrder(id);
+
+        if (_productOrder == null)
+        {
+            return NotFound();
+        }
+
+        productOrder.Id = _productOrder.Id;
+
+        _productOrderRepository.UpdateProductOrder(productOrder);
+
+        return Ok(productOrder);
+    }
+
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpDelete("{id}", Name = "DeleteProductOrder")]
+    public ActionResult<ProductOrder> DeleteProductOrder(string id)
+    {
+        var productOrder = _productOrderRepository.GetProductOrder(id);
+
+        if (productOrder == null)
+        {
+            return NotFound();
+        }
+
+        _productOrderRepository.DeleteProductOrder(productOrder);
+
+        return NoContent();
+    }
+
     /** <summary>Get order products of an existing order</summary>
      * <param name="id">Id of the product order that you want to get products of</param>
-     * <param name="itemsPerPage">Number of order products returned in the response</param>
-     * <param name="pageNum">Number of the chunk of order products returned in the response</param>
      */
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OrderProductReturnObject[]))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpGet("{id}/orderProducts")]
-    public ActionResult GetOrderProducts(string id, [FromQuery] int itemsPerPage = 10, [FromQuery] int pageNum = 0)
+    public ActionResult GetOrderProducts(string id)
     {
-        return Ok();
+        var productOrder = _productOrderRepository.GetProductOrder(id);
+        var orderProducts = _orderProductRepository.GetAllOrderProducts();
+        
+        orderProducts = orderProducts.Where(o => o.TableNumber == productOrder.TableNumber);
+
+        return Ok(orderProducts);
     }
     
     /** <summary>Add order products to an existing order</summary>
      * <param name="id">Id of the product order that you want to add products to</param>
-     * <param name="orderProducts">Order product list in body to add to the product order</param>
      */
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpPost("{id}/orderProducts")]
-    public ActionResult PostOrderProducts(string id, [FromBody] OrderProduct[] orderProducts)
+    public ActionResult PostOrderProduct(string id, [FromBody] OrderProduct newOrderProduct)
     {
-        return Ok();
+        var productOrder = _productOrderRepository.GetProductOrder(id);
+
+        var orderProduct = new OrderProduct()
+        {
+            Id = Guid.NewGuid().ToString(),
+            TableNumber = productOrder.TableNumber,
+            ProductId = newOrderProduct.ProductId,
+            Quantity = newOrderProduct.Quantity,
+            Details = newOrderProduct.Details,
+            OrderId = productOrder.Id
+        };
+
+        _orderProductRepository.CreateOrderProduct(orderProduct);
+
+        return CreatedAtAction("GetOrderProducts", new { id = orderProduct.Id}, orderProduct);
     }
     
     /** <summary>Edit order products in an existing order</summary>
-     * <param name="id">Id of the product order that you want to edit an order product in</param>
-     * <param name="orderProducts">Order products in body to edit in the product order</param>
+     * <param name="id">Id of the order product that you want to edit</param>
      */
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [HttpPut("{id}/orderProducts")]
-    public ActionResult PutOrderProducts(string id, [FromBody] OrderProduct[] orderProducts)
+    [HttpPut("orderProducts/{id}/put")]
+    public ActionResult<OrderProduct> PutOrderProduct(string id, OrderProduct orderProduct)
     {
-        return Ok();
+        var _orderProduct = _orderProductRepository.GetOrderProduct(id);
+
+        if (_orderProduct == null)
+        {
+            return NotFound();
+        }
+
+        orderProduct.Id = _orderProduct.Id;
+
+        _orderProductRepository.UpdateOrderProduct(orderProduct);
+
+        return Ok(orderProduct);
     }
     
     /** <summary>Remove an order product from an existing order</summary>
-     * <param name="id">Id of the product order that you want to remove a product from</param>
-     * <param name="orderProductId">Id of the order product to remove from the product order</param>
+     * <param name="id">Id of the order product that you want to remove</param>
      */
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [HttpDelete("{id}/orderProducts/{orderProductId}")]
-    public ActionResult DeleteOrderProduct(string id, string orderProductId)
+    [HttpDelete("orderProducts/{id}/delete")]
+    public ActionResult DeleteOrderProduct(string id)
     {
-        return Ok();
+        var orderProduct = _orderProductRepository.GetOrderProduct(id);
+
+        if (orderProduct == null)
+        {
+            return NotFound();
+        }
+
+        _orderProductRepository.DeleteOrderProduct(orderProduct);
+
+        return NoContent();
     }
 
 }
