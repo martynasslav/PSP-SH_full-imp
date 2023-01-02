@@ -15,10 +15,12 @@ namespace Controllers;
 public class PaymentController : ControllerBase
 {
     private IPaymentRepository _paymentRepository;
+    private ICustomerRepository _customerRepository;
 
-    public PaymentController(IPaymentRepository paymentRepository)
+    public PaymentController(IPaymentRepository paymentRepository, ICustomerRepository customerRepository)
     {
         _paymentRepository = paymentRepository;
+        _customerRepository = customerRepository;
     }
 
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -97,7 +99,7 @@ public class PaymentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpGet("{id}/invoice/{customerId}")]
-    public ActionResult<Payment> SendInvoiceToCustomer(string id, string customerId)
+    public ActionResult SendInvoiceToCustomer(string id, string customerId)
     {
         var payment = _paymentRepository.GetPayment(id);
         
@@ -106,16 +108,16 @@ public class PaymentController : ControllerBase
             return NotFound();
         }
 
-        /*var customer = _customerRepository.GetCustomer(customerId);
+        var customer = _customerRepository.GetCustomerById(customerId);
 
         if (customer == null)
         {
             return NotFound();
         }
 
-        Function to send info to customers email*/
+        //Function to send info to customers email
 
-        return Ok(payment);
+        return Ok(customer);
     }
 
     /** <summary>Returns a check</summary>
